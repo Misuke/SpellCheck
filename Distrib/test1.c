@@ -17,6 +17,9 @@ int main(void)
   hash_table_create();
   /* Remplissage de la table */
   hash_table_add("foo");
+  hash_table_add("foo");
+  hash_table_add("foo");
+  hash_table_add("foo");
   hash_table_add("bar");
   hash_table_add("BAR"); /* converti en minuscules avant ajout dans table */
 
