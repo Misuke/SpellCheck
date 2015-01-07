@@ -62,6 +62,7 @@
 #ifndef _CORRECT_H
 #define _CORRECT_H
 #define ALPHABET    "abcdefghijklmnopqrstuvwxyz"
+#define DEBUG       1
 
 /* propose une correction plausible pour le mot word. Si aucune
    correction n'est trouvée, on renvoie le mot lui même */

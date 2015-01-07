@@ -16,6 +16,132 @@
 #include "hash.h"
 
 
+static char **allocate_corrections(size_t size)
+{
+  int nbCorrectionsAvailable = 54 * size + 25;
+  char **correctionsAvailable = (char **)malloc(nbCorrectionsAvailable * sizeof(char *));
+  for (int i = 0; i < nbCorrectionsAvailable; ++i)
+    correctionsAvailable[i] = (char *)malloc(size * sizeof(char *));
+
+  return correctionsAvailable;
+}
+
+static int deletions(char *word, char **corrections, int index)
+{
+  char *tmp = malloc(sizeof(word) - sizeof(char));
+  int position = 0;
+
+  for (int i = 0; word[i]; ++i, ++index)
+  {
+    for (int j = 0; word[j]; ++j)
+    {
+      if (i == j) continue;
+
+      tmp[position++] = word[j];
+    }
+
+    position = 0;
+    corrections[index] = strdup(tmp);
+  }
+
+  free(tmp);
+  return index;
+}
+
+static int transpositions(char *word, char **corrections, int index)
+{
+  char *tmp = malloc(sizeof(word));
+  strcpy(tmp, word);
+
+  for (int i = 0; tmp[i+1]; ++i, ++index)
+  {
+    tmp[i] = word[i+1];
+    tmp[i+1] = word[i];
+    corrections[index] = strdup(tmp);
+  }
+
+  free(tmp);
+  return index;
+}
+
+static int alterations(char *word, char **corrections, int index)
+{
+  char *tmp = malloc(sizeof(word));
+  strcpy(tmp, word);
+
+  for (int i = 0; tmp[i]; ++i)
+  {
+    for (int j = 0; ALPHABET[j]; ++j, ++index)
+    {
+      if (tmp[i] == ALPHABET[j]) continue;
+
+      tmp[i] = ALPHABET[j];
+      corrections[index] = strdup(tmp);
+    }
+    tmp[i] = word[i];
+  }
+
+  free(tmp);
+  return index;
+}
+
+static int inserts(char *word, char **corrections, int index)
+{
+  char *tmp = malloc(sizeof(word) + sizeof(char));
+  int length = strlen(word) + 1;
+  int position = 0;
+
+  for (int i = 0; i < length; ++i)
+  {
+    for (int j = 0; ALPHABET[j]; ++j, ++index)
+    {
+      tmp[i] = j;
+      for (int k = 0; word[k]; ++k, ++position)
+      {
+        if (k == i) ++position;
+        tmp[position] = word[k];
+      }
+
+      position = 0;
+      corrections[index] = strdup(tmp);
+    }
+  }
+
+  free(tmp);
+  return index;
+}
+
+static char *better_candidate(char *word, char **corrections, int index)
+{
+  char *better = malloc(sizeof(word) + sizeof(char));
+  int nbOccur = 0;
+  int bestOccur = 0;
+
+  for (int i = 0; i < index; ++i)
+  {
+    nbOccur = hash_table_search(corrections[i]);
+    if (nbOccur > bestOccur)
+    {
+      strcpy(better, corrections[i]);
+      bestOccur = nbOccur;
+    }
+  }
+
+  return (bestOccur == 0) ? NULL : better;
+}
+
+static char *try_2_errors(char **corrections, int index)
+{
+  return NULL;
+}
+
+static void destroy_corrections(char **corrections, int index)
+{
+  for (int i = 0; i < index; ++i)
+    free(corrections[i]);
+  free(corrections);
+}
+
 static char **build_corrections(char *word, int *size)
 {
   char **corrections = allocate_corrections(strlen(word));
@@ -35,7 +161,6 @@ static char **build_corrections(char *word, int *size)
   *size = index;
   return corrections;
 }
-
 
 static char *find_correction(char *word)
 {
@@ -62,13 +187,13 @@ static char *find_correction(char *word)
   return result;
 }
 
+/* propose une correction plausible pour le mot word. Si aucune
+   correction n'est trouvée, on renvoie le mot lui même */
 char *correct_word(char *word)
 {
   if (hash_table_is_present(word))
     return word;
-  else {
-    char *correct = find_correction(word);
 
-    return correct? correct: word;
-  }
+  char *correctWord = find_correction(word);
+  return correctWord ? correctWord : word;
 }

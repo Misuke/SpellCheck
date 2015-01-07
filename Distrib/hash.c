@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "hash.h"
 
 /* creation de la table */
@@ -27,20 +29,28 @@ int hash_table_is_present(char *word)
 int hash_table_search(char *word)
 {
     ENTRY e, *ep;
-
     e.key = word;
 
     ep = hsearch(e, FIND);
     return ep ? (int)(ep->data) : 0;
 }
 
+char * strlower(char *word) {
+    char *str = strdup(word);
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        str[i] = tolower(str[i]);
+    }
+
+    return str;
+}
+
 /* ajoute word dans la table */
 void hash_table_add(char *word)
 {
-    //word = strlower(word);
     ENTRY e, *ep;
 
-    e.key = word;
+    e.key = strlower(word);
     e.data = (void *) 1;
     ep = hsearch(e, FIND);
 
@@ -48,19 +58,4 @@ void hash_table_add(char *word)
         ep->data = ep->data + 1;
     else
         ep = hsearch(e, ENTER);
-
-    if (ep == NULL) {
-        fprintf(stderr, "entry failed\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-char* strlower(char *word) {
-    char *str = strdup(word);
-    for (int i = 0; str[i]; i++)
-    {
-        str[i] = tolower(str[i]);
-    }
-
-    return str;
 }

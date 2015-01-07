@@ -1,9 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "corpus.h"
+#include "hash.h"
 
 int init_corpus_from_file(char *filename)
 {
-    char *buffer, *token;
+    char buffer[255];
+    char *token;
+    FILE *file;
     file = fopen(filename, "r");
     if (file == NULL)
     {
@@ -11,11 +16,12 @@ int init_corpus_from_file(char *filename)
         exit(EXIT_FAILURE);
     }
 
-    if (fgets(str, buffer, 255, file))
+    while (fgets(buffer, 255, file))
     {
-        for (token = strtok(str, SEPARATORS); token; token = strtok(NULL, SEPARATORS))
+        for (token = strtok(buffer, SEPARATORS); token; token = strtok(NULL, SEPARATORS))
             hash_table_add(token);
     }
 
     fclose(file);
+    return 1;
 }
