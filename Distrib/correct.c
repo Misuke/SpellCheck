@@ -58,6 +58,8 @@ static int transpositions(char *word, char **corrections, int index)
     tmp[i] = word[i+1];
     tmp[i+1] = word[i];
     corrections[index] = strdup(tmp);
+    tmp[i] = word[i];
+    tmp[i+1] = word[i+1];
   }
 
   free(tmp);
@@ -130,11 +132,6 @@ static char *better_candidate(char *word, char **corrections, int index)
   return (bestOccur == 0) ? NULL : better;
 }
 
-static char *try_2_errors(char **corrections, int index)
-{
-  return NULL;
-}
-
 static void destroy_corrections(char **corrections, int index)
 {
   for (int i = 0; i < index; ++i)
@@ -160,6 +157,25 @@ static char **build_corrections(char *word, int *size)
 
   *size = index;
   return corrections;
+}
+
+static char *try_2_errors(char **corrections, int index)
+{
+  char **newCorrections = allocate_corrections(index);
+  int newIndex = 0;
+
+  for (int i = 0; i < index; ++i)
+  {
+    int tmpIndex = 0;
+    char **correctionsAgain = build_corrections(corrections[i], &tmpIndex);
+    for (int j = 0; j < tmpIndex; ++j)
+    {
+      if (hash_table_is_present(correctionsAgain[j]))
+        newCorrections[newIndex++] = correctionsAgain[j];
+    }
+  }
+
+  return better_candidate(newCorrections[0], newCorrections, newIndex);
 }
 
 static char *find_correction(char *word)
