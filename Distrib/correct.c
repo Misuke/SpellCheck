@@ -95,7 +95,7 @@ static int inserts(char *word, char **corrections, int index)
   {
     for (int j = 0; ALPHABET[j]; ++j, ++index)
     {
-      tmp[i] = j;
+      tmp[i] = ALPHABET[j];
       for (int k = 0; word[k]; ++k, ++position)
       {
         if (k == i) ++position;
